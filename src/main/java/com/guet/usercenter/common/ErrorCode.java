@@ -1,7 +1,5 @@
 package com.guet.usercenter.common;
 
-import lombok.Data;
-
 /**
  * 错误码
  *
