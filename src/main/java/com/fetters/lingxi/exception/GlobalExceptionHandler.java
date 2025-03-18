@@ -1,8 +1,8 @@
-package com.guet.usercenter.exception;
+package com.fetters.lingxi.exception;
 
-import com.guet.usercenter.common.BaseResponse;
-import com.guet.usercenter.common.ErrorCode;
-import com.guet.usercenter.common.ResultUtils;
+import com.fetters.lingxi.common.BaseResponse;
+import com.fetters.lingxi.common.ErrorCode;
+import com.fetters.lingxi.common.ResultUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

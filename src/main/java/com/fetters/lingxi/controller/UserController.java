@@ -1,14 +1,14 @@
-package com.guet.usercenter.controller;
+package com.fetters.lingxi.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.guet.usercenter.common.BaseResponse;
-import com.guet.usercenter.common.ErrorCode;
-import com.guet.usercenter.common.ResultUtils;
-import com.guet.usercenter.exception.BusinessException;
-import com.guet.usercenter.model.domain.User;
-import com.guet.usercenter.model.domain.request.UserLoginRequest;
-import com.guet.usercenter.model.domain.request.UserRegisterRequest;
-import com.guet.usercenter.service.UserService;
+import com.fetters.lingxi.common.BaseResponse;
+import com.fetters.lingxi.common.ErrorCode;
+import com.fetters.lingxi.common.ResultUtils;
+import com.fetters.lingxi.exception.BusinessException;
+import com.fetters.lingxi.model.domain.User;
+import com.fetters.lingxi.model.domain.request.UserLoginRequest;
+import com.fetters.lingxi.model.domain.request.UserRegisterRequest;
+import com.fetters.lingxi.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.guet.usercenter.constant.UserConstant.ADMIN_ROLE;
-import static com.guet.usercenter.constant.UserConstant.USER_LOGIN_STATE;
+import static com.fetters.lingxi.constant.UserConstant.ADMIN_ROLE;
+import static com.fetters.lingxi.constant.UserConstant.USER_LOGIN_STATE;
 
 /**
  * 用户接口

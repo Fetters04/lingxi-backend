@@ -1,18 +1,20 @@
-package com.guet.usercenter;
+package com.fetters.lingxi;
 
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
+ * 灵犀伙伴匹配系统启动
+ *
  * @author Fetters
  */
 @SpringBootApplication
-@MapperScan("com.guet.usercenter.mapper")
-public class UserCenterApplication {
+@MapperScan("com.fetters.lingxi.mapper")
+public class LingXiApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(UserCenterApplication.class, args);
+        SpringApplication.run(LingXiApplication.class, args);
     }
 
 }

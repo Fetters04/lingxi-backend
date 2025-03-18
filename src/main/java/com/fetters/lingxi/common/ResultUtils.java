@@ -1,4 +1,4 @@
-package com.guet.usercenter.common;
+package com.fetters.lingxi.common;
 
 /**
  * 返回工具类

@@ -1,6 +1,4 @@
-package com.guet.usercenter.constant;
-
-import com.guet.usercenter.service.UserService;
+package com.fetters.lingxi.constant;
 
 /**
  * 用户常量

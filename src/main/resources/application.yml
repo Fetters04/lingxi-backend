@@ -1,9 +1,9 @@
 spring:
   application:
-    name: user-center
+    name: backend
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/fetters
+    url: jdbc:mysql://localhost:3306/partner_matching
     username: root
     password: 123456
   # session 超时时间

@@ -1,6 +1,6 @@
-package com.guet.usercenter.exception;
+package com.fetters.lingxi.exception;
 
-import com.guet.usercenter.common.ErrorCode;
+import com.fetters.lingxi.common.ErrorCode;
 
 import java.io.Serial;
 

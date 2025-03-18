@@ -1,4 +1,4 @@
-package com.guet.usercenter.common;
+package com.fetters.lingxi.common;
 
 /**
  * 错误码

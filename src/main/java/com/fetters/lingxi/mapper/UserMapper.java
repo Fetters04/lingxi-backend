@@ -1,6 +1,6 @@
-package com.guet.usercenter.mapper;
+package com.fetters.lingxi.mapper;
 
-import com.guet.usercenter.model.domain.User;
+import com.fetters.lingxi.model.domain.User;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

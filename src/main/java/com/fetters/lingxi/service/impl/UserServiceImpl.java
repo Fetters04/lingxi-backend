@@ -1,22 +1,23 @@
-package com.guet.usercenter.service.impl;
+package com.fetters.lingxi.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.guet.usercenter.common.ErrorCode;
-import com.guet.usercenter.exception.BusinessException;
-import com.guet.usercenter.model.domain.User;
-import com.guet.usercenter.service.UserService;
-import com.guet.usercenter.mapper.UserMapper;
+import com.fetters.lingxi.common.ErrorCode;
+import com.fetters.lingxi.exception.BusinessException;
+import com.fetters.lingxi.model.domain.User;
+import com.fetters.lingxi.service.UserService;
+import com.fetters.lingxi.mapper.UserMapper;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.guet.usercenter.constant.UserConstant.USER_LOGIN_STATE;
+import static com.fetters.lingxi.constant.UserConstant.USER_LOGIN_STATE;
 
 /**
  * @author Fetters
@@ -33,6 +34,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     private static final String SALT = "fetters";
 
+    /**
+     * 用户注册
+     *
+     * @param userAccount   用户账号
+     * @param userPassword  用户密码
+     * @param checkPassword 确认密码
+     * @param planetCode
+     * @return
+     */
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword, String planetCode) {
         // 1.校验
@@ -89,6 +99,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return user.getId();
     }
 
+    /**
+     * 用户登录
+     *
+     * @param userAccount  用户账号
+     * @param userPassword 用户密码
+     * @param request
+     * @return
+     */
     @Override
     public User userLogin(String userAccount, String userPassword, HttpServletRequest request) {
         // 1.校验
@@ -155,6 +173,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return safetyUser;
     }
 
+    /**
+     * 用户注销
+     *
+     * @param request
+     * @return
+     */
     @Override
     public int userLogout(HttpServletRequest request) {
         // 移除用户登录态

@@ -1,4 +1,4 @@
-package com.guet.usercenter.model.domain.request;
+package com.fetters.lingxi.model.domain.request;
 
 import lombok.Data;
 
