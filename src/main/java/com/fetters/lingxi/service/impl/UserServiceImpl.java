@@ -7,15 +7,23 @@ import com.fetters.lingxi.exception.BusinessException;
 import com.fetters.lingxi.model.domain.User;
 import com.fetters.lingxi.service.UserService;
 import com.fetters.lingxi.mapper.UserMapper;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.fetters.lingxi.constant.UserConstant.USER_LOGIN_STATE;
 
@@ -149,7 +157,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return safetyUser;
     }
 
-
     /**
      * 用户脱敏
      *
@@ -170,6 +177,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         safetyUser.setUserRole(user.getUserRole());
         safetyUser.setUserStatus(user.getUserStatus());
         safetyUser.setCreateTime(user.getCreateTime());
+        safetyUser.setTags(user.getTags());
         return safetyUser;
     }
 
@@ -185,6 +193,61 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         request.getSession().removeAttribute(USER_LOGIN_STATE);
 
         return 1;
+    }
+
+    /**
+     * 根据标签搜索用户（内存过滤）
+     *
+     * @param tagNameList 用户拥有的标签
+     * @return 包含所有标签的用户列表
+     */
+    @Override
+    public List<User> searchUsersByTags(List<String> tagNameList) {
+        if (CollectionUtils.isEmpty(tagNameList)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        // 1.查询所有用户
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        List<User> userList = userMapper.selectList(queryWrapper);
+        // 使用 gson 解析 json
+        Gson gson = new Gson();
+        // 2.在内存中判断是否包含标签
+        return userList.stream().filter(user -> {
+            String tagsStr = user.getTags();
+            Set<String> userTagNameSet = gson.fromJson(tagsStr, new TypeToken<Set<String>>() {
+            }.getType());
+            userTagNameSet = Optional.ofNullable(userTagNameSet).orElse(new HashSet<>());
+            for (String tagName : tagNameList) {
+                if (!userTagNameSet.contains(tagName)) {
+                    return false;
+                }
+            }
+            return true;
+        }).map(this::getSafetyUser).collect(Collectors.toList());
+    }
+
+    /**
+     * 根据标签搜索用户（SQL查询）
+     *
+     * @param tagNameList 用户拥有的标签
+     * @return 包含所有标签的用户列表
+     */
+    @Deprecated
+    private List<User> searchUsersByTagsBySql(List<String> tagNameList) {
+        if (CollectionUtils.isEmpty(tagNameList)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        // 拼接 and 的 like 查询
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        for (String tagName : tagNameList) {
+            queryWrapper.like("tags", tagName);
+        }
+
+        List<User> userList = userMapper.selectList(queryWrapper);
+
+        return userList.stream().map(this::getSafetyUser).collect(Collectors.toList());
     }
 }
 

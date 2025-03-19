@@ -8,9 +8,10 @@ import java.util.Date;
 
 /**
  * 用户表
+ *
  * @TableName user
  */
-@TableName(value ="user")
+@TableName(value = "user")
 @Data
 public class User implements Serializable {
     /**
@@ -55,7 +56,7 @@ public class User implements Serializable {
     private String email;
 
     /**
-     *  用户状态 0-正常
+     * 用户状态 0-正常
      */
     private Integer userStatus;
 
@@ -84,6 +85,11 @@ public class User implements Serializable {
      * 星球编号
      */
     private String planetCode;
+
+    /**
+     * 标签列表 json
+     */
+    private String tags;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
