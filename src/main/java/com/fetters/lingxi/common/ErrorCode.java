@@ -1,13 +1,16 @@
 package com.fetters.lingxi.common;
 
+import lombok.Getter;
+
 /**
  * 错误码
  *
  * @author Fetters
  */
+@Getter
 public enum ErrorCode {
 
-    SUCCESS(0, "ok", ""),
+    SUCCESS(200, "ok", ""),
     PARAMS_ERROR(40000, "请求参数错误", ""),
     NULL_ERROR(40001, "请求数据为空", ""),
     NO_LOGIN(40100, "未登录", ""),
@@ -33,15 +36,4 @@ public enum ErrorCode {
         this.description = description;
     }
 
-    public int getCode() {
-        return code;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public String getDescription() {
-        return description;
-    }
 }

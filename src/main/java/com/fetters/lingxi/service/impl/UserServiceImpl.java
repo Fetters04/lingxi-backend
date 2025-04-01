@@ -171,6 +171,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         safetyUser.setUserAccount(user.getUserAccount());
         safetyUser.setAvatarUrl(user.getAvatarUrl());
         safetyUser.setGender(user.getGender());
+        safetyUser.setProfile(user.getProfile());
         safetyUser.setPhone(user.getPhone());
         safetyUser.setEmail(user.getEmail());
         safetyUser.setPlanetCode(user.getPlanetCode());
