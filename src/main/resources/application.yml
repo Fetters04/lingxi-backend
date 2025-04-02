@@ -9,6 +9,14 @@ spring:
   # session 超时时间
   session:
     timeout: 86400
+    redis:
+      flush-mode: on_save
+      namespace: "lingxi:session"
+  data:
+    redis:
+      port: 6379
+      host: localhost
+      database: 0
 
 server:
   port: 8080
