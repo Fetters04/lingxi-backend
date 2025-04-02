@@ -25,6 +25,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.fetters.lingxi.constant.UserConstant.ADMIN_ROLE;
 import static com.fetters.lingxi.constant.UserConstant.USER_LOGIN_STATE;
 
 /**
@@ -192,14 +193,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public int userLogout(HttpServletRequest request) {
         // 移除用户登录态
         request.getSession().removeAttribute(USER_LOGIN_STATE);
-
         return 1;
     }
 
     /**
      * 根据标签搜索用户（内存过滤）
      *
-     * @param tagNameList 用户拥有的标签
+     * @param tagNameList 搜索标签
      * @return 包含所有标签的用户列表
      */
     @Override
@@ -228,10 +228,67 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }).map(this::getSafetyUser).collect(Collectors.toList());
     }
 
+    @Override
+    public int updateUser(User user, HttpServletRequest request) {
+        Long userId = user.getId();
+        User loginUser = getLoginUser(request);
+        if (userId == null || userId <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        // 只有管理员和自己才能修改用户信息
+        if (!isAdmin(request) && !userId.equals(loginUser.getId())) {
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+
+        // 如果数据库中有这个数据才修改
+        User oldUser = userMapper.selectById(userId);
+        if (oldUser == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+
+        int count = userMapper.updateById(user);
+        // 重新记录用户态
+        User newLoginUser = userMapper.selectById(loginUser.getId());
+        request.getSession().setAttribute(USER_LOGIN_STATE, newLoginUser);
+        return count;
+    }
+
+    /**
+     * 获取登录用户
+     *
+     * @param request
+     * @return 登录用户
+     */
+    @Override
+    public User getLoginUser(HttpServletRequest request) {
+        if (request == null) {
+            return null;
+        }
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (userObj == null) {
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        return (User) userObj;
+    }
+
+    /**
+     * 当前用户是否为管理员
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    public boolean isAdmin(HttpServletRequest request) {
+        // 仅管理员可查询
+        User loginUser = getLoginUser(request);
+        return loginUser != null && loginUser.getUserRole() == ADMIN_ROLE;
+    }
+
     /**
      * 根据标签搜索用户（SQL查询）
      *
-     * @param tagNameList 用户拥有的标签
+     * @param tagNameList 搜索标签
      * @return 包含所有标签的用户列表
      */
     @Deprecated

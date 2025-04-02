@@ -18,9 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.fetters.lingxi.constant.UserConstant.ADMIN_ROLE;
-import static com.fetters.lingxi.constant.UserConstant.USER_LOGIN_STATE;
-
 /**
  * 用户接口
  *
@@ -82,23 +79,14 @@ public class UserController {
 
     @GetMapping("/currentUser")
     public BaseResponse<User> getCurrentUser(HttpServletRequest request) {
-        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
-        User currentUser = (User) userObj;
-        if (currentUser == null) {
-            return null;
-        }
-        long userId = currentUser.getId();
-        // TODO: 校验用户合法性
-        User user = userService.getById(userId);
-        User safetyUser = userService.getSafetyUser(user);
-
-        return ResultUtils.success(safetyUser);
+        User loginUser = userService.getLoginUser(request);
+        return ResultUtils.success(loginUser);
     }
 
     @GetMapping("/search")
     public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request) {
         // 仅管理员可查询
-        if (!isAdmin(request)) {
+        if (!userService.isAdmin(request)) {
             throw new BusinessException(ErrorCode.NO_AUTH, "非管理员不能操作");
         }
 
@@ -116,7 +104,7 @@ public class UserController {
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request) {
         // 仅管理员可查询
-        if (!isAdmin(request)) {
+        if (!userService.isAdmin(request)) {
             throw new BusinessException(ErrorCode.NO_AUTH, "非管理员不能操作");
         }
         if (id <= 0) {
@@ -133,20 +121,18 @@ public class UserController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         List<User> userList = userService.searchUsersByTags(tagNameList);
+
         return ResultUtils.success(userList);
     }
 
-    /**
-     * 是否为管理员
-     *
-     * @param request
-     * @return
-     */
-    private boolean isAdmin(HttpServletRequest request) {
-        // 仅管理员可查询
-        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
-        User user = (User) userObj;
-        return user != null && user.getUserRole() == ADMIN_ROLE;
-    }
+    @PostMapping("/update")
+    public BaseResponse<Integer> updateUser(@RequestBody User user, HttpServletRequest request) {
+        // 校验参数是否为空
+        if (user == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        int count = userService.updateUser(user, request);
 
+        return ResultUtils.success(count);
+    }
 }
