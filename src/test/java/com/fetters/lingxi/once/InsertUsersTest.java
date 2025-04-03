@@ -11,8 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
-import static com.baomidou.mybatisplus.extension.parser.JsqlParserGlobal.executorService;
-
 /**
  * @author : Fetters
  * @description : 导入用户数据
