@@ -30,6 +30,12 @@ public class UserController {
     @Resource
     private UserService userService;
 
+    /**
+     * 注册用户接口
+     *
+     * @param userRegisterRequest 用户注册信息
+     * @return 注册成功的用户 id
+     */
     @PostMapping("/register")
     public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
         if (userRegisterRequest == null) {
@@ -49,6 +55,13 @@ public class UserController {
         return ResultUtils.success(result);
     }
 
+    /**
+     * 用户登录接口
+     *
+     * @param userLoginRequest 用户登录信息
+     * @param request          request
+     * @return 脱敏后的用户信息
+     */
     @PostMapping("/login")
     public BaseResponse<User> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
         if (userLoginRequest == null) {
@@ -66,6 +79,12 @@ public class UserController {
         return ResultUtils.success(user);
     }
 
+    /**
+     * 退出登录接口
+     *
+     * @param request request
+     * @return 1
+     */
     @PostMapping("/logout")
     public BaseResponse<Integer> userLogout(HttpServletRequest request) {
         if (request == null) {
@@ -77,12 +96,25 @@ public class UserController {
         return ResultUtils.success(result);
     }
 
+    /**
+     * 获取当前用户接口
+     *
+     * @param request request
+     * @return 当前用户
+     */
     @GetMapping("/currentUser")
     public BaseResponse<User> getCurrentUser(HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         return ResultUtils.success(loginUser);
     }
 
+    /**
+     * 根据用户名查找用户接口
+     *
+     * @param username 用户名
+     * @param request  request
+     * @return 查询结果用户列表
+     */
     @GetMapping("/search")
     public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request) {
         // 仅管理员可查询
@@ -101,6 +133,13 @@ public class UserController {
         return ResultUtils.success(list);
     }
 
+    /**
+     * 删除用户接口
+     *
+     * @param id      用户 id
+     * @param request request
+     * @return 删除成功或失败
+     */
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request) {
         // 仅管理员可查询
@@ -115,6 +154,12 @@ public class UserController {
         return ResultUtils.success(b);
     }
 
+    /**
+     * 根据标签搜索用户接口
+     *
+     * @param tagNameList 标签列表
+     * @return 搜索到的用户列表
+     */
     @GetMapping("/search/tags")
     public BaseResponse<List<User>> searchUserByTags(@RequestParam(required = false) List<String> tagNameList) {
         if (CollectionUtils.isEmpty(tagNameList)) {
@@ -125,6 +170,13 @@ public class UserController {
         return ResultUtils.success(userList);
     }
 
+    /**
+     * 修改用户信息接口
+     *
+     * @param user    修改的用户信息
+     * @param request request
+     * @return 影响记录条数
+     */
     @PostMapping("/update")
     public BaseResponse<Integer> updateUser(@RequestBody User user, HttpServletRequest request) {
         // 校验参数是否为空
@@ -134,5 +186,17 @@ public class UserController {
         int count = userService.updateUser(user, request);
 
         return ResultUtils.success(count);
+    }
+
+    /**
+     * 推荐用户接口
+     *
+     * @return 推荐的用户列表
+     */
+    @GetMapping("/recommend")
+    public BaseResponse<List<User>> recommendUsers() {
+        List<User> userList = userService.list();
+        List<User> list = userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
+        return ResultUtils.success(list);
     }
 }
