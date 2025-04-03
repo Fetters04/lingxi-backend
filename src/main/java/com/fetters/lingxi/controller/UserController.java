@@ -1,6 +1,7 @@
 package com.fetters.lingxi.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fetters.lingxi.common.BaseResponse;
 import com.fetters.lingxi.common.ErrorCode;
 import com.fetters.lingxi.common.ResultUtils;
@@ -194,9 +195,9 @@ public class UserController {
      * @return 推荐的用户列表
      */
     @GetMapping("/recommend")
-    public BaseResponse<List<User>> recommendUsers() {
-        List<User> userList = userService.list();
-        List<User> list = userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
-        return ResultUtils.success(list);
+    public BaseResponse<Page<User>> recommendUsers(long pageNum, long pageSize) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        Page<User> userList = userService.page(new Page<>(pageNum, pageSize), queryWrapper);
+        return ResultUtils.success(userList);
     }
 }
