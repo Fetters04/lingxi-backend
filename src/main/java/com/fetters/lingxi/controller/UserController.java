@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/user")
 public class UserController {
-
     @Resource
     private UserService userService;
 
@@ -195,9 +194,10 @@ public class UserController {
      * @return 推荐的用户列表
      */
     @GetMapping("/recommend")
-    public BaseResponse<Page<User>> recommendUsers(long pageNum, long pageSize) {
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        Page<User> userList = userService.page(new Page<>(pageNum, pageSize), queryWrapper);
-        return ResultUtils.success(userList);
+    public BaseResponse<Page<User>> recommendUsers(long pageNum, long pageSize, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        String redisKey = String.format("lingxi:user:recommend:%s", loginUser.getId());
+        Page<User> userPage = userService.getUserPage(pageNum, pageSize, redisKey);
+        return ResultUtils.success(userPage);
     }
 }

@@ -1,5 +1,6 @@
 package com.fetters.lingxi.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.fetters.lingxi.model.domain.User;
 import jakarta.servlet.http.HttpServletRequest;
@@ -76,4 +77,14 @@ public interface UserService extends IService<User> {
      * @return
      */
     boolean isAdmin(HttpServletRequest request);
+
+    /**
+     * 从缓存中读取分页用户信息
+     *
+     * @param pageNum  当前页码
+     * @param pageSize 页数
+     * @param redisKey 当前用户对应的 key
+     * @return 用户分页数据
+     */
+    Page<User> getUserPage(long pageNum, long pageSize, String redisKey);
 }

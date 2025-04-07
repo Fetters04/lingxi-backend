@@ -1,6 +1,7 @@
 package com.fetters.lingxi.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fetters.lingxi.common.ErrorCode;
 import com.fetters.lingxi.exception.BusinessException;
@@ -13,6 +14,8 @@ import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
@@ -21,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -34,9 +38,10 @@ import static com.fetters.lingxi.constant.UserConstant.USER_LOGIN_STATE;
 @Service
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
-
     @Resource
     private UserMapper userMapper;
+    @Resource
+    private RedisTemplate<String, Object> redisTemplate;
 
     /**
      * 盐值，混淆密码
@@ -283,6 +288,34 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 仅管理员可查询
         User loginUser = getLoginUser(request);
         return loginUser != null && loginUser.getUserRole() == ADMIN_ROLE;
+    }
+
+    /**
+     * 从缓存中读取分页用户信息
+     *
+     * @param pageNum  当前页码
+     * @param pageSize 页数
+     * @param redisKey 当前用户对应的 key
+     * @return 用户分页数据
+     */
+    @Override
+    public Page<User> getUserPage(long pageNum, long pageSize, String redisKey) {
+        ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
+        Page<User> userPage = (Page<User>) valueOperations.get(redisKey);
+        // 如果有缓存，直接读缓存
+        if (userPage != null) {
+            return userPage;
+        }
+        // 无缓存，查数据库
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        userPage = this.page(new Page<>(pageNum, pageSize), queryWrapper);
+        // 写缓存
+        try {
+            valueOperations.set(redisKey, userPage, 30000, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            log.error("redis set key error", e);
+        }
+        return userPage;
     }
 
     /**
