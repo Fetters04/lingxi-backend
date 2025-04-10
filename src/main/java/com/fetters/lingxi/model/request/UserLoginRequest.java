@@ -1,4 +1,4 @@
-package com.fetters.lingxi.model.domain.request;
+package com.fetters.lingxi.model.request;
 
 import lombok.Data;
 
