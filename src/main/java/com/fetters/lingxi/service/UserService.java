@@ -79,6 +79,14 @@ public interface UserService extends IService<User> {
     boolean isAdmin(HttpServletRequest request);
 
     /**
+     * 当前用户是否为管理员
+     *
+     * @param loginUser
+     * @return
+     */
+    boolean isAdmin(User loginUser);
+
+    /**
      * 从缓存中读取分页用户信息
      *
      * @param pageNum  当前页码

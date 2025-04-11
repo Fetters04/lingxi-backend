@@ -3,6 +3,12 @@ package com.fetters.lingxi.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.fetters.lingxi.model.domain.Team;
 import com.fetters.lingxi.model.domain.User;
+import com.fetters.lingxi.model.dto.TeamQuery;
+import com.fetters.lingxi.model.request.TeamJoinRequest;
+import com.fetters.lingxi.model.request.TeamUpdateRequest;
+import com.fetters.lingxi.model.vo.TeamUserVO;
+
+import java.util.List;
 
 /**
  * @author Fetters
@@ -18,4 +24,32 @@ public interface TeamService extends IService<Team> {
      * @return
      */
     long addTeam(Team team, User loginUser);
+
+
+    /**
+     * 搜索队伍
+     *
+     * @param teamQuery
+     * @param isAdmin
+     * @return
+     */
+    List<TeamUserVO> listTeams(TeamQuery teamQuery, boolean isAdmin);
+
+    /**
+     * 更新队伍信息
+     *
+     * @param teamUpdateRequest
+     * @param loginUser
+     * @return
+     */
+    boolean updateTeam(TeamUpdateRequest teamUpdateRequest, User loginUser);
+
+    /**
+     * 加入队伍
+     *
+     * @param teamJoinRequest
+     * @param loginUser
+     * @return
+     */
+    boolean joinTeam(TeamJoinRequest teamJoinRequest, User loginUser);
 }
