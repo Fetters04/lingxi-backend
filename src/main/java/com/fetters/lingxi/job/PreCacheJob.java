@@ -35,8 +35,8 @@ public class PreCacheJob {
     // 重点用户
     private List<Long> mainUserList = Arrays.asList(1L);
 
-    // 每天 4:00 执行，预热推荐用户
-    @Scheduled(cron = "0 46 20 * * *")
+    // 每天 20:00 执行，预热推荐用户
+    @Scheduled(cron = "0 0 20 * * *")
     public void doCacheRecommendUser() {
         RLock lock = redissonClient.getLock("lingxi:precachejob:docache:lock");
         try {

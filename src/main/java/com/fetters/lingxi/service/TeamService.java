@@ -5,6 +5,7 @@ import com.fetters.lingxi.model.domain.Team;
 import com.fetters.lingxi.model.domain.User;
 import com.fetters.lingxi.model.dto.TeamQuery;
 import com.fetters.lingxi.model.request.TeamJoinRequest;
+import com.fetters.lingxi.model.request.TeamQuitRequest;
 import com.fetters.lingxi.model.request.TeamUpdateRequest;
 import com.fetters.lingxi.model.vo.TeamUserVO;
 
@@ -52,4 +53,22 @@ public interface TeamService extends IService<Team> {
      * @return
      */
     boolean joinTeam(TeamJoinRequest teamJoinRequest, User loginUser);
+
+    /**
+     * 退出队伍
+     *
+     * @param teamQuitRequest
+     * @param loginUser
+     * @return
+     */
+    boolean quitTeam(TeamQuitRequest teamQuitRequest, User loginUser);
+
+    /**
+     * 删除队伍
+     *
+     * @param id
+     * @param loginUser
+     * @return
+     */
+    boolean deleteTeam(long id, User loginUser);
 }

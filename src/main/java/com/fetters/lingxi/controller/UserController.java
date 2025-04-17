@@ -200,4 +200,22 @@ public class UserController {
         Page<User> userPage = userService.getUserPage(pageNum, pageSize, redisKey);
         return ResultUtils.success(userPage);
     }
+
+
+    /**
+     * 获取最匹配的用户
+     *
+     * @param num
+     * @param request
+     * @return
+     */
+    @GetMapping("/match")
+    public BaseResponse<List<User>> matchUsers(long num, HttpServletRequest request) {
+        if (num <=0 || num > 20) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        String redisKey = String.format("lingxi:user:match:%s", loginUser.getId());
+        return ResultUtils.success(userService.matchUsers(num, loginUser, redisKey));
+    }
 }

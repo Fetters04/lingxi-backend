@@ -95,4 +95,14 @@ public interface UserService extends IService<User> {
      * @return 用户分页数据
      */
     Page<User> getUserPage(long pageNum, long pageSize, String redisKey);
+
+    /**
+     * 获取最匹配的用户
+     *
+     * @param num
+     * @param loginUser
+     * @param redisKey
+     * @return
+     */
+    List<User> matchUsers(long num, User loginUser,  String redisKey);
 }

@@ -5,25 +5,26 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fetters.lingxi.common.ErrorCode;
 import com.fetters.lingxi.exception.BusinessException;
+import com.fetters.lingxi.mapper.UserMapper;
 import com.fetters.lingxi.model.domain.User;
 import com.fetters.lingxi.service.UserService;
-import com.fetters.lingxi.mapper.UserMapper;
+import com.fetters.lingxi.utils.AlgorithmUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.MutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -213,13 +214,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
 
-        // 1.查询所有用户
+        // 1.查询所有标签不为空的用户
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("id", "tags");
+        queryWrapper.isNotNull("tags");
         List<User> userList = userMapper.selectList(queryWrapper);
         // 使用 gson 解析 json
         Gson gson = new Gson();
         // 2.在内存中判断是否包含标签
-        return userList.stream().filter(user -> {
+        List<User> searchUserList = userList.stream().filter(user -> {
             String tagsStr = user.getTags();
             Set<String> userTagNameSet = gson.fromJson(tagsStr, new TypeToken<Set<String>>() {
             }.getType());
@@ -230,9 +233,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 }
             }
             return true;
-        }).map(this::getSafetyUser).collect(Collectors.toList());
+        }).toList();
+        List<Long> searchUserIdList = searchUserList.stream().map(User::getId).toList();
+        QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
+        userQueryWrapper.in("id", searchUserIdList);
+        // 获取到脱敏了的搜索用户
+        return this.list(userQueryWrapper).stream().map(this::getSafetyUser).toList();
     }
 
+    /**
+     * 修改用户信息
+     *
+     * @param user
+     * @param request
+     * @return
+     */
     @Override
     public int updateUser(User user, HttpServletRequest request) {
         Long userId = user.getId();
@@ -272,7 +287,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
         if (userObj == null) {
-            throw new BusinessException(ErrorCode.NO_AUTH);
+            throw new BusinessException(ErrorCode.NO_LOGIN);
         }
         return (User) userObj;
     }
@@ -327,6 +342,71 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             log.error("redis set key error", e);
         }
         return userPage;
+    }
+
+    /**
+     * 获取最匹配的用户
+     *
+     * @param num
+     * @param loginUser
+     * @param redisKey
+     * @return
+     */
+    @Override
+    public List<User> matchUsers(long num, User loginUser, String redisKey) {
+        ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
+        List<User> hotUserList = (List<User>) valueOperations.get(redisKey);
+        // 如果有缓存，直接读缓存
+        if (hotUserList != null) {
+            return hotUserList;
+        }
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("id", "tags");
+        queryWrapper.isNotNull("tags");
+        List<User> userList = this.list(queryWrapper);
+        String tags = loginUser.getTags();
+        Gson gson = new Gson();
+        List<String> tagList = gson.fromJson(tags, new TypeToken<List<String>>() {
+        }.getType());
+        // Pair ->（用户，相似度）
+        List<Pair<User, Long>> pairList = new ArrayList<>();
+        // 依次计算所有用户和当前用户的相似度
+        for (int i = 0; i < userList.size(); i++) {
+            User user = userList.get(i);
+            String userTags = user.getTags();
+            // 无标签或为当前用户自己
+            if (StringUtils.isBlank(userTags) || user.getId().equals(loginUser.getId())) {
+                continue;
+            }
+            // 计算分数
+            long distance = AlgorithmUtils.minDistance(tagList, gson.fromJson(userTags, new TypeToken<List<String>>() {
+            }.getType()));
+            pairList.add(new MutablePair<>(user, distance));
+        }
+        // 按编辑距离升序排序（按相似度降序）
+        List<Pair<User, Long>> topUserPairList = pairList.stream()
+                .sorted((a, b) -> (int) (a.getValue() - b.getValue()))
+                .limit(num).toList();
+        // 获取匹配到的用户id（用户id按相似度降序排列）
+        List<Long> userIdList = topUserPairList.stream().map(pair -> pair.getKey().getId()).toList();
+        QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
+        userQueryWrapper.in("id", userIdList);
+        // 获取到脱敏了的匹配用户映射 -> Map(userId, userList)（有序）
+        Map<Long, List<User>> userIdUserListMap = this.list(userQueryWrapper).stream()
+                .map(this::getSafetyUser)
+                .collect(Collectors.groupingBy(User::getId));
+        // 因为上面userQueryWrapper查询打乱了顺序，这里根据上面正确顺序的userIdList赋值
+        List<User> finalUserList = new ArrayList<>();
+        for (Long userId : userIdList) {
+            finalUserList.add(userIdUserListMap.get(userId).get(0));
+        }
+        // 写缓存
+        try {
+            valueOperations.set(redisKey, finalUserList, 30000, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            log.error("redis set key error", e);
+        }
+        return finalUserList;
     }
 
     /**
