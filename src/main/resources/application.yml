@@ -22,9 +22,7 @@ spring:
     time-zone: GMT+8
 
 server:
-  port: 8080
-  servlet:
-    context-path: /api
+  port: 8081
 
 mybatis-plus:
   configuration:
